@@ -1,0 +1,178 @@
+using Photon.Pun;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using Photon.Realtime;
+using UnityEngine.SceneManagement;
+
+
+public class LobbyScript : MonoBehaviourPunCallbacks
+{
+    [SerializeField] private Button createRoomButton;
+    [SerializeField] private Button joinRoomButton;
+
+    [SerializeField] private InputField createInput;
+    [SerializeField] private InputField joinInput;
+    [SerializeField] private InputField NicknameInput;
+
+    [SerializeField] public Image LocalProfileImage;
+    [SerializeField] public Sprite defaultTexture;
+
+    [SerializeField] public Text personalScore;
+
+    void Start()
+    {
+        //PlayerPrefs.SetString("avatarPath", "E:/FrendsPhoto/����/EE1.jpg");
+        // PlayerPrefs.Save();
+
+        PhotonNetwork.NickName = "Player" + Random.Range(0, 9999);
+        PhotonNetwork.AutomaticallySyncScene = true;
+        PhotonNetwork.GameVersion = "1";
+        PhotonNetwork.ConnectUsingSettings();
+        loadSavings();
+    }
+
+    void Update()
+    {
+        // bool b = (!PhotonNetwork.IsConnectedAndReady && 
+        //            PhotonNetwork.NetworkClientState != ClientState.PeerCreated &&
+        //            PhotonNetwork.NetworkClientState != ClientState.Authenticating &&
+        //            PhotonNetwork.NetworkClientState != ClientState.JoiningLobby  &&
+        //            PhotonNetwork.NetworkClientState != ClientState.Joining && 
+        //            PhotonNetwork.NetworkClientState != ClientState.ConnectingToMasterServer && 
+        //            PhotonNetwork.NetworkClientState != ClientState.ConnectingToNameServer); 
+
+        // Debug.Log(PhotonNetwork.NetworkClientState);
+
+        if (PhotonNetwork.NetworkClientState == ClientState.Disconnected) StartCoroutine(reconnectingCoroutine());
+    }
+
+    IEnumerator reconnectingCoroutine()
+    {
+        PhotonNetwork.Reconnect();
+
+        createRoomButton.interactable = false;
+        joinRoomButton.interactable = false;
+
+        while(!PhotonNetwork.IsConnectedAndReady) yield return null;
+
+        createRoomButton.interactable = true;
+        joinRoomButton.interactable = true;
+    }
+
+    IEnumerator waitJoinOrCreateButtons()
+    {
+        createRoomButton.interactable = false;
+        joinRoomButton.interactable = false;
+
+        // while(!PhotonNetwork.IsConnectedAndReady ||
+        // PhotonNetwork.NetworkClientState == ClientState.Joining || 
+        // PhotonNetwork.NetworkClientState == ClientState.ConnectingToGameServer ||
+        // PhotonNetwork.NetworkClientState == ClientState.Authenticating) yield return null;
+
+        while(!PhotonNetwork.IsConnectedAndReady) yield return null;
+
+        createRoomButton.interactable = true;
+        joinRoomButton.interactable = true;
+    }
+    IEnumerator waitJoinButton()
+    {
+        joinRoomButton.interactable = false;
+        while(!PhotonNetwork.IsConnectedAndReady) yield return null;
+        joinRoomButton.interactable = true;
+    }
+    IEnumerator waitCreateButton()
+    {
+        createRoomButton.interactable = false;
+        while(!PhotonNetwork.IsConnectedAndReady) yield return null;
+        createRoomButton.interactable = true;
+    }
+    void loadSavings()
+    {
+        if (PlayerPrefs.HasKey("avatarPath")) 
+        {
+            string path = PlayerPrefs.GetString("avatarPath");
+            setAvatarImage(path);
+        }
+        if (PlayerPrefs.HasKey("Nickname"))
+        {
+            string name = PlayerPrefs.GetString("Nickname");
+            NicknameInput.text = name;
+        }
+        if (PlayerPrefs.HasKey("Score"))
+        {
+            int score = PlayerPrefs.GetInt("Score");
+            personalScore.text = "" + score;
+        }
+    }
+
+    public override void OnConnectedToMaster()
+    {
+        Debug.Log(PhotonNetwork.NickName + " connected to Master");
+        createRoomButton.interactable = true;
+        joinRoomButton.interactable = true;
+    }
+
+    public void createRoom()
+    {
+        RoomOptions roomOptions = new RoomOptions();
+        roomOptions.MaxPlayers = 2;
+        PhotonNetwork.CreateRoom(createInput.text, roomOptions);
+        StartCoroutine(waitJoinOrCreateButtons());
+    }
+
+    public void joinRoom()
+    {
+        RoomOptions roomOptions = new RoomOptions();
+        roomOptions.MaxPlayers = 2;
+        PhotonNetwork.JoinRoom(joinInput.text);
+        StartCoroutine(waitJoinOrCreateButtons());
+    }
+
+    public override void OnJoinedRoom()
+    {
+        Debug.Log(PhotonNetwork.NickName + " joined to Room with " + joinInput + " pass");
+        SceneManager.LoadScene(1);
+    }
+
+    public void ShowMediaPicker()
+    {
+        if (Application.isEditor)
+        {
+            // Do something else, since the plugin does not work inside the editor
+        }
+        else
+        {
+            NativeGallery.GetImageFromGallery((path) =>
+            {
+                if (setAvatarImage(path) == 0) saveNewAvatarPath(path);
+            });
+        }
+    }
+
+    int setAvatarImage(string path)
+    {
+        Texture2D texture = NativeGallery.LoadImageAtPath(path);
+        if (texture == null) return 1;
+        LocalProfileImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+        return 0;
+    }
+
+    void saveNewAvatarPath(string path)
+    {
+        PlayerPrefs.SetString("avatarPath", path);
+        PlayerPrefs.Save();
+    }
+    public void saveNewNickname()
+    {
+        PlayerPrefs.SetString("Nickname", NicknameInput.text);
+        PlayerPrefs.Save();
+    }
+    public void removeAvatar()
+    {
+        PlayerPrefs.DeleteKey("avatarPath");
+        PlayerPrefs.Save();
+        LocalProfileImage.sprite = defaultTexture;
+    }
+}
