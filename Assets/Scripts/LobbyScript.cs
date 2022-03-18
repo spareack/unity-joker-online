@@ -68,6 +68,11 @@ public class LobbyScript : MonoBehaviourPunCallbacks
         if (friendsIDs.Length > 0) PhotonNetwork.FindFriends(friendsIDs);
     }
 
+    public void StartSinglePlayer()
+    {
+        SceneManager.LoadScene(2);
+    }
+
     public override void OnFriendListUpdate(List<FriendInfo> friendsInfo)
     {
         refreshScrollPanel(friendsInfo);
