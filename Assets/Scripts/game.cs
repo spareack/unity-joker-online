@@ -305,39 +305,44 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         orderMenu.SetActive(false);
     }
 
-    private void Scoring(int numPlayer)
+    private int Scoring(int numPlayer)
     {
         if (orderCardCount[numPlayer] != winCardCount[numPlayer] && winCardCount[numPlayer] == 0) // Штанга
         {
             playersScore[numPlayer] -= 200;
+            return -200;
         }
         else if (orderCardCount[numPlayer] != winCardCount[numPlayer]) // Перегрузка
         {
             playersScore[numPlayer] += 10;
+            return 10;
         }
         else if (orderCardCount[numPlayer] == 0) // Пас
         {
             playersScore[numPlayer] += 50;
+            return 50;
         }
         else if (orderCardCount[numPlayer] == winCardCount[numPlayer]) // Взятка
         {
             if (cardCountForLevel[round] == 1 && orderCardCount[numPlayer] == 1) playersScore[numPlayer] += 100;
             else if (cardCountForLevel[round] == 2 && orderCardCount[numPlayer] == 2) playersScore[numPlayer] += 200;
-            else if (cardCountForLevel[round] == 2 && orderCardCount[numPlayer] > 2) playersScore[numPlayer] += 150;
+            else if (cardCountForLevel[round] == 2 && orderCardCount[numPlayer] < 2) playersScore[numPlayer] += 150;
             else if (cardCountForLevel[round] == 3 && orderCardCount[numPlayer] == 3) playersScore[numPlayer] += 300;
-            else if (cardCountForLevel[round] == 3 && orderCardCount[numPlayer] > 3) playersScore[numPlayer] += 200;
+            else if (cardCountForLevel[round] == 3 && orderCardCount[numPlayer] < 3) playersScore[numPlayer] += 200;
             else if (cardCountForLevel[round] == 4 && orderCardCount[numPlayer] == 4) playersScore[numPlayer] += 400;
-            else if (cardCountForLevel[round] == 4 && orderCardCount[numPlayer] > 4) playersScore[numPlayer] += 250;
+            else if (cardCountForLevel[round] == 4 && orderCardCount[numPlayer] < 4) playersScore[numPlayer] += 250;
             else if (cardCountForLevel[round] == 5 && orderCardCount[numPlayer] == 5) playersScore[numPlayer] += 500;
-            else if (cardCountForLevel[round] == 5 && orderCardCount[numPlayer] > 5) playersScore[numPlayer] += 300;
+            else if (cardCountForLevel[round] == 5 && orderCardCount[numPlayer] < 5) playersScore[numPlayer] += 300;
             else if (cardCountForLevel[round] == 6 && orderCardCount[numPlayer] == 6) playersScore[numPlayer] += 600;
-            else if (cardCountForLevel[round] == 6 && orderCardCount[numPlayer] > 6) playersScore[numPlayer] += 350;
+            else if (cardCountForLevel[round] == 6 && orderCardCount[numPlayer] < 6) playersScore[numPlayer] += 350;
             else if (cardCountForLevel[round] == 7 && orderCardCount[numPlayer] == 7) playersScore[numPlayer] += 700;
-            else if (cardCountForLevel[round] == 7 && orderCardCount[numPlayer] > 7) playersScore[numPlayer] += 400;
+            else if (cardCountForLevel[round] == 7 && orderCardCount[numPlayer] < 7) playersScore[numPlayer] += 400;
             else if (cardCountForLevel[round] == 8 && orderCardCount[numPlayer] == 8) playersScore[numPlayer] += 800;
-            else if (cardCountForLevel[round] == 8 && orderCardCount[numPlayer] > 8) playersScore[numPlayer] += 450;
+            else if (cardCountForLevel[round] == 8 && orderCardCount[numPlayer] < 8) playersScore[numPlayer] += 450;
             else if (cardCountForLevel[round] == 9 && orderCardCount[numPlayer] == 9) playersScore[numPlayer] += 900;
+            else return -2;
         }
+        return 0;
     }
 
     void Start()
@@ -554,10 +559,25 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
             winCardCount[winnerIndex] += 1;
             setPlayerReceived(winnerIndex, winCardCount[winnerIndex], playersScore);
             playerNum = winnerIndex;
-            yield return new WaitForSeconds(2f);
+
+            // if (j == cardCountForLevel[round] - 1)
+            // {
+            //     for(int i = 1; i < 4; i += 1) Scoring(i);
+            //     Debug.Log(Scoring(0));
+            //     setPlayerReceived(0, winCardCount[0], playersScore);
+            //     winCardCount = new int[] { 0, 0, 0, 0 };
+
+            //     round += 1;
+            //     StartCoroutine(startMainSingleRoundCoroutine());
+            // }
+
+            yield return StartCoroutine(receiveCardsAnimate(winnerIndex));
+
+            // yield return new WaitForSeconds(2f);
             clearThrowedCards();
         }
-        for(int i = 0; i < 4; i += 1) Scoring(i);
+        for(int i = 1; i < 4; i += 1) Scoring(i);
+        Debug.Log(Scoring(0));
         setPlayerReceived(0, winCardCount[0], playersScore);
         winCardCount = new int[] { 0, 0, 0, 0 };
 
@@ -735,7 +755,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
             throwedCards[i].transform.position = endPos;
         }
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0);
     }
 
     void clearOrderCounts()
@@ -803,8 +823,10 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         {
             for(int i = 0; i < cardsCount; i += 1)
             {
-                int x = Random.Range(0, allCardsIndexesTemp.Count);
-                int y = Random.Range(0, allCardsIndexesTemp[x].Count);
+                var (x, y) = getRandomCardIndex(allCardsIndexesTemp);
+
+                // int x = Random.Range(0, allCardsIndexesTemp.Count);
+                // int y = Random.Range(0, allCardsIndexesTemp[x].Count);
 
                 playerCards[j].Add(new int[] {x, allCardsIndexesTemp[x][y]} );
                 allCardsIndexesTemp[x].RemoveAt(y);
@@ -812,6 +834,16 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
             }
         }
         TrumpDefinition(allCardsIndexesTemp);
+    }
+
+    (int, int) getRandomCardIndex(List<List<int>> allCardsIndexesTemp)
+    {
+        List<(int, int)> allIndexes = new List<(int, int)>();
+        for(int i = 0; i < allCardsIndexesTemp.Count; i += 1)
+        {
+            for(int j = 0; j < allCardsIndexesTemp[i].Count; j += 1) allIndexes.Add((i, j));
+        }
+        return allIndexes.OrderBy(x => Random.Range(0, 1000)).First();
     }
 
     void clearThrowedCards()
@@ -836,7 +868,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         {
             for (int i = 0; i < allHands.Count; i++)
             {
-                if (i == 0) allHands[0].addCard(mas1[j], mas2[j], false);
+                if (i == 0) allHands[0].addCard(mas1[j], mas2[j], false, true);
                 else allHands[i].addCard(0, 0, true);
 
                 yield return new WaitForSeconds(0.1f);

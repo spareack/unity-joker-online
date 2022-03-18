@@ -5371,6 +5371,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31bf47231ed67de46a044a4c65511cca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  singlePlayerGame: 0
   Network: {fileID: 1799441882}
   enemyID: 
   addFriendButton: {fileID: 0}
@@ -5396,7 +5397,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  myIndex: 0
   orderMenu: {fileID: 1801198238}
   howManyCardOrderButton:
   - {fileID: 667651894}
@@ -10268,7 +10268,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 4.49, y: -110.000015}
+  m_AnchoredPosition: {x: 4.49, y: -56}
   m_SizeDelta: {x: 1010.98, y: 428}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1801198240

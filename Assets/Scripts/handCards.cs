@@ -55,10 +55,12 @@ public class handCards : MonoBehaviour
         {
             card.transform.position = Vector3.Lerp(card.transform.position, endPos, t / duration);
             card.transform.localRotation = Quaternion.Lerp(card.transform.localRotation, endRot, t / duration);
+            card.transform.localScale = Vector3.Lerp(card.transform.localScale, cardPrefab.transform.localScale, t / duration);
             yield return null;
         }
         card.transform.position = endPos;
         card.transform.localRotation = endRot;
+        card.transform.localScale = cardPrefab.transform.localScale;
 
         normalizeCardsPos();
     }
@@ -76,9 +78,11 @@ public class handCards : MonoBehaviour
         scoreText.text = "Счет: " + count;
     }
 
-    public void addCard(int suit, int Value, bool hiden)
+    public void addCard(int suit, int Value, bool hiden, bool myHand = false)
     {
         var card = Instantiate(cardPrefab, transform);
+        if (myHand) card.transform.localScale *= 1.25f;
+
         var comp = card.GetComponent<Card>();
         comp.handCardsScr = this;
         comp.setCardValue(suit, Value, hiden, this);
