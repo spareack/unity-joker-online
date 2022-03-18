@@ -14,6 +14,8 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 {
+    public bool singlePlayerGame = false;
+
     [SerializeField] public networkManager Network;
 
     [SerializeField] private string enemyID = "";
@@ -82,7 +84,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
     private GameObject trumpObject = null;
     private int trumpSuit = -1;
 
-    public int myIndex = 0;
+    private int myIndex = 0;
 
     void Init()
     {
@@ -158,7 +160,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         int index = getRealHandIndex(playerNum);
         allHands[index].setCardsReceived(cardsCount);
-        for(int i = 0; i < 4; i += 1) allHands[index].setScore(scores[i]);
+        for(int i = 0; i < 4; i += 1) allHands[getRealHandIndex(i)].setScore(scores[i]);
     }
 
     void setPlayerTurn(int playerNum, int[] cardValue, int cardIndex, bool hiden)
@@ -209,7 +211,12 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         myTurn = false;
         allHands[0].outLine.SetActive(false);
 
-        sendEvent20(PhotonNetwork.LocalPlayer, true, count, -1);
+        if (!singlePlayerGame) sendEvent20(PhotonNetwork.LocalPlayer, true, count, -1);
+        else
+        {
+            lastChooseCardsCount = count;
+            waitCount += 1;
+        }
         CloseOrderMenu();
     }
 
@@ -240,21 +247,57 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         myTurn = false;
         allHands[0].outLine.SetActive(false);
 
-        sendEvent20(PhotonNetwork.LocalPlayer, false, cardIndex, -1);
+        if (!singlePlayerGame) sendEvent20(PhotonNetwork.LocalPlayer, false, cardIndex, -1);
+        else
+        {
+            lastChooseCardIndex = cardIndex;
+            jokerCount = -1;
+            waitCount += 1;
+        }
+        return;
     }
+
+    public int getCardIndexForBotTurn(int playerNum)
+    {
+        if (playerCards[playerNum].Any(x => x[0] == firstTurnSuit))
+        {
+            var item = playerCards[playerNum].Where(x => x[0] == firstTurnSuit).OrderBy(r => Random.Range(0, 1000)).First();
+            return playerCards[playerNum].IndexOf(item);
+        }
+        else if (playerCards[playerNum].Any(x => x[0] == trumpSuit))
+        {
+            var item = playerCards[playerNum].Where(x => x[0] == trumpSuit).OrderBy(r => Random.Range(0, 1000)).First();
+            return playerCards[playerNum].IndexOf(item);
+        }
+        else return Random.Range(0, playerCards[playerNum].Count);
+    }
+
 
     public void setJokerChoseUpDown(int count)
     {
         jokerChoseUpDown.SetActive(false);
         allHands[0].outLine.SetActive(false);
-        sendEvent20(PhotonNetwork.LocalPlayer, false, jokerIndex, count);
+
+        if (!singlePlayerGame) sendEvent20(PhotonNetwork.LocalPlayer, false, jokerIndex, count);
+        else
+        {
+            lastChooseCardIndex = jokerIndex;
+            jokerCount = count;
+            waitCount += 1;
+        }
     }
 
     public void setJokerChoseSuit(int count)
     {
         jokerChoseSuit.SetActive(false);
         allHands[0].outLine.SetActive(false);
-        sendEvent20(PhotonNetwork.LocalPlayer, false, jokerIndex, 2 + count);
+        if (!singlePlayerGame) sendEvent20(PhotonNetwork.LocalPlayer, false, jokerIndex, 2 + count);
+        else
+        {
+            lastChooseCardIndex = jokerIndex;
+            jokerCount = 2 + count;
+            waitCount += 1;
+        }
     }
 
     private void CloseOrderMenu()
@@ -299,19 +342,23 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
     void Start()
     {
-        if (PhotonNetwork.PlayerList.Length > 3)
+        if (!singlePlayerGame)
         {
-            loadingMenu.SetActive(true);
-            waitingMenu.SetActive(false);
-            gameMenu.SetActive(false);
+            if (PhotonNetwork.PlayerList.Length > 3)
+            {
+                loadingMenu.SetActive(true);
+                waitingMenu.SetActive(false);
+                gameMenu.SetActive(false);
+            }
+            else
+            {
+                waitingMenu.SetActive(true);
+                gameMenu.SetActive(false);
+                loadingMenu.SetActive(false);
+            }
+            loadSavings();
         }
-        else
-        {
-            waitingMenu.SetActive(true);
-            gameMenu.SetActive(false);
-            loadingMenu.SetActive(false);
-        }
-        loadSavings();
+        else StartCoroutine(startMainSingleRoundCoroutine());
     }
 
     void Update()
@@ -373,9 +420,159 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         }
     }
 
+
+    IEnumerator startMainSingleRoundCoroutine()
+    {
+        randomCards(cardCountForLevel[round]);
+
+        int[] mas1 = playerCards[0].Select(x => x[0]).ToArray();
+        int[] mas2 = playerCards[0].Select(x => x[1]).ToArray();
+        StartCoroutine(Distribution(mas1, mas2, currentTrump));
+        
+
+        yield return new WaitForSeconds(cardCountForLevel[round] * 0.1f * 4);
+
+        int playerNum = Random.Range(0, 4);
+
+        for (int i = 0; i < 4; i++)
+        {
+            enableOutlineGlow(playerNum);
+
+            if (playerNum == myIndex)
+            {
+                if (i == 3) OpenOrderMenu(round, orderCardCount.Sum());
+                else OpenOrderMenu(round, -1);
+
+                waitCount = 0;
+                var t = 0f;
+                while(waitCount < 1 && t < 20f) 
+                {
+                    t += Time.deltaTime;
+                    yield return null;
+                }
+
+                if (waitCount < 1)
+                {
+                    orderCardCount[playerNum] = 0;
+                    CloseOrderMenu();
+                    setPlayerChoose(playerNum, orderCardCount[playerNum]);
+                }
+                else 
+                {
+                    orderCardCount[playerNum] = lastChooseCardsCount;
+                    setPlayerChoose(playerNum, orderCardCount[playerNum]);
+                }
+            }
+            else
+            {
+                yield return new WaitForSeconds(0.5f);
+                var trumpCardsCount = playerCards[playerNum].Where(x => x[0] == trumpSuit || x[0] == 4).ToList().Count;
+                orderCardCount[playerNum] = trumpCardsCount;
+                setPlayerChoose(playerNum, orderCardCount[playerNum]);
+            }
+            playerNum += 1;
+            playerNum %= 4;
+        }
+
+// - - - - - - - - - 
+
+        for (int j = 0; j < cardCountForLevel[round]; j += 1)
+        {
+            firstTurnSuit = -1;
+
+            for (int i = 0; i < 4; i++)
+            {
+                enableOutlineGlow(playerNum);
+
+                if (playerNum == myIndex)
+                {
+                    myTurn = true;
+
+                    jokerCount = -1;
+                    waitCount = 0;
+                    var t = 0f;
+                    while(waitCount < 1 && t < 40f)
+                    {
+                        t += Time.deltaTime;
+                        yield return null;
+                    }
+
+                    if (waitCount < 1)
+                    {
+                        myTurn = false;
+                        jokerChoseSuit.SetActive(false);
+                        jokerChoseUpDown.SetActive(false);
+                        allHands[0].outLine.SetActive(false);
+
+                        int randomCardIndex = Random.Range(0, playerCards[playerNum].Count);
+                        cardsChosen[playerNum] = playerCards[playerNum][randomCardIndex];
+
+                        if (cardsChosen[playerNum][0] == 4)
+                        {
+                            if (i == 0) allJokerCounts[playerNum] = Random.Range(0, 2);
+                            else allJokerCounts[playerNum] = Random.Range(2, 6);
+                        }
+                        setPlayerTurn(playerNum, cardsChosen[playerNum], randomCardIndex, allJokerCounts[playerNum] == 1);
+                        playerCards[playerNum].RemoveAt(randomCardIndex);
+                    }
+                    else
+                    {
+                        cardsChosen[playerNum % 4] = playerCards[playerNum][lastChooseCardIndex];
+                        allJokerCounts[playerNum] = jokerCount;
+                        setPlayerTurn(playerNum, cardsChosen[playerNum], lastChooseCardIndex, allJokerCounts[playerNum] == 1);
+                        playerCards[playerNum].RemoveAt(lastChooseCardIndex);
+                    }
+                }
+                else
+                {
+                    yield return new WaitForSeconds(0.5f);
+
+                    lastChooseCardIndex = getCardIndexForBotTurn(playerNum);
+                    cardsChosen[playerNum] = playerCards[playerNum][lastChooseCardIndex];
+
+                    if (playerCards[playerNum][lastChooseCardIndex][0] == 4)
+                    {
+                        if (i == 0) allJokerCounts[playerNum] = Random.Range(2, 6);
+                        else allJokerCounts[playerNum] = (winCardCount[playerNum] < orderCardCount[playerNum] ? 0 : 1);
+                    }
+                    else allJokerCounts[playerNum] = -1;
+                    setPlayerTurn(playerNum, cardsChosen[playerNum], lastChooseCardIndex, allJokerCounts[playerNum] == 1);
+                    playerCards[playerNum].RemoveAt(lastChooseCardIndex);
+                }
+
+                if (i == 0)
+                {
+                    if (cardsChosen[playerNum][0] == 4) firstTurnSuit = allJokerCounts[playerNum] - 2;
+                    else firstTurnSuit = cardsChosen[playerNum][0];
+                }
+
+                playerNum += 1;
+                playerNum %= 4;
+            }
+
+            int winnerIndex = Array.IndexOf(cardsChosen, maxCardValue(playerNum));
+            winCardCount[winnerIndex] += 1;
+            setPlayerReceived(winnerIndex, winCardCount[winnerIndex], playersScore);
+            playerNum = winnerIndex;
+            yield return new WaitForSeconds(2f);
+            clearThrowedCards();
+        }
+        for(int i = 0; i < 4; i += 1) Scoring(i);
+        setPlayerReceived(0, winCardCount[0], playersScore);
+        winCardCount = new int[] { 0, 0, 0, 0 };
+
+        round += 1;
+        StartCoroutine(startMainSingleRoundCoroutine());
+    }
+
+
+// ======================
+
+
     IEnumerator startPreparingRoundCoroutine()
     {
         randomCards(cardCountForLevel[round]);
+        sendEvent31(playerCards, currentTrump);
 
         yield return new WaitForSeconds(cardCountForLevel[round] * 0.1f * 4);
 
@@ -468,16 +665,17 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
             int winnerIndex = Array.IndexOf(cardsChosen, maxCardValue(playerNum));
             winCardCount[winnerIndex] += 1;
-            for(int i = 0; i < 4; i += 1) Scoring(i);
 
-            playerNum = winnerIndex;
+            // for(int i = 0; i < 4; i += 1) Scoring(i);
             sendEvent33(winnerIndex, winCardCount[winnerIndex], playersScore);
-
-            // yield return StartCoroutine(receiveCardsAnimate(winnerIndex));
+            
+            playerNum = winnerIndex;
             yield return new WaitForSeconds(3.5f);
-
             clearThrowedCards();
         }
+        for(int i = 0; i < 4; i += 1) Scoring(i);
+        sendEvent33(0, winCardCount[0], playersScore);
+        winCardCount = new int[] { 0, 0, 0, 0 };
 
         round += 1;
         StartCoroutine(startPreparingRoundCoroutine());
@@ -613,8 +811,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
                 if (allCardsIndexesTemp[x].Count < 1) allCardsIndexesTemp.RemoveAt(x);
             }
         }
-        currentTrump = TrumpDefinition(allCardsIndexesTemp);
-        sendEvent31(playerCards, currentTrump);
+        TrumpDefinition(allCardsIndexesTemp);
     }
 
     void clearThrowedCards()
@@ -687,11 +884,11 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         trumpObject.transform.position = endPos;
     }
 
-    private int[] TrumpDefinition(List<List<int>> remainingCards)
+    private void TrumpDefinition(List<List<int>> remainingCards)
     {
         int x = Random.Range(0, remainingCards.Count);
         int y = Random.Range(0, remainingCards[x].Count);
-        return new int[] {x, remainingCards[x][y]};
+        currentTrump = new int[] {x, remainingCards[x][y]};
     }
 
     private void endGameFunction()

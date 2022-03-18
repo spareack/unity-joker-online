@@ -20,17 +20,13 @@ public class networkManager : MonoBehaviourPunCallbacks
     void Update()
     {
         if (PhotonNetwork.NetworkClientState == ClientState.Disconnected) PhotonNetwork.Reconnect();
+
     }
 
-    public void leaveGame()
-    {
-        PhotonNetwork.LeaveRoom();
-    }
-    public override void OnLeftRoom()
-    {
-        Debug.Log("Left Room");
-        SceneManager.LoadScene(0);
-    }
+    public void leaveGame() => PhotonNetwork.LeaveRoom();
+
+    public override void OnLeftRoom() => SceneManager.LoadScene(0);
+
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         if (PhotonNetwork.PlayerList.Length == 4)
@@ -90,7 +86,7 @@ public class networkManager : MonoBehaviourPunCallbacks
 
     public void OnOperationResponse(OperationResponse operationResponse)
     {
-        Debug.Log(operationResponse.DebugMessage);
+        // Debug.Log(operationResponse.DebugMessage);
         // switch (operationResponse.OperationCode)
         // {
         //     case OperationCode.LeaveLobby:

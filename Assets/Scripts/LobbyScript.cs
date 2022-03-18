@@ -35,17 +35,21 @@ public class LobbyScript : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        // S.save.avatarPath = "E:/FrendsPhoto/����/EE1.jpg";
-        // S.saveChanges();
+        if (PhotonNetwork.NetworkClientState == ClientState.PeerCreated)
+        {
+            // S.save.avatarPath = "E:/FrendsPhoto/����/EE1.jpg";
+            // S.saveChanges();
 
-        PhotonNetwork.NickName = S.save.Nickname;
-        PhotonNetwork.AuthValues = new AuthenticationValues(S.save.ID);
-        PhotonNetwork.AutomaticallySyncScene = true;
-        PhotonNetwork.GameVersion = "1";
-        PhotonNetwork.ConnectUsingSettings();
-        loadSavings();
+            PhotonNetwork.NickName = S.save.Nickname;
+            PhotonNetwork.AuthValues = new AuthenticationValues(S.save.ID);
+            PhotonNetwork.AutomaticallySyncScene = true;
+            PhotonNetwork.GameVersion = "1";
+            PhotonNetwork.ConnectUsingSettings();
+            loadSavings();
 
-        StartCoroutine(refreshFriendsListCoroutine());
+            StartCoroutine(refreshFriendsListCoroutine());
+            StartCoroutine(reconnectingCoroutine());
+        }
     }
 
     IEnumerator refreshFriendsListCoroutine()
@@ -111,6 +115,8 @@ public class LobbyScript : MonoBehaviourPunCallbacks
         // Debug.Log(PhotonNetwork.IsConnectedAndReady);
 
         if (PhotonNetwork.NetworkClientState == ClientState.Disconnected) StartCoroutine(reconnectingCoroutine());
+        // Debug.Log(PhotonNetwork.NetworkClientState);
+
     }
 
     IEnumerator reconnectingCoroutine()
