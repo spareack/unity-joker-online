@@ -28,7 +28,7 @@ public class AchievementController : MonoBehaviour
             float x = -8f;
             for (int j = 0; j < 6; j++)
             {
-                int num = i * 5 + j;
+                int num = i * 6 + j;
                 Vector3 pos = new Vector3(x, y, -9f);
                 GameObject achiev = Instantiate(achivementPrefeb, pos, Quaternion.identity, transform);
                 achiev.GetComponent<Button>().onClick.AddListener(() => ButtonController(num));
