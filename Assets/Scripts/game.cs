@@ -648,7 +648,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
             for (int i = 0; i < 4; i++)
             {
                 float t = 0f;
-                sendEvent10(playerNum % 4, false, firstSuit);
+                sendEvent10(playerNum, false, firstSuit);
 
                 while(waitCount < i+1 && t < 40f)
                 {
@@ -658,7 +658,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
                 if (waitCount < i+1)
                 {
-                    sendEvent11(allPlayers[playerNum % 4], false);
+                    sendEvent11(allPlayers[playerNum], false);
 
                     int randomCardIndex = Random.Range(0, playerCards[playerNum].Count);
                     cardsChosen[playerNum] = playerCards[playerNum][randomCardIndex];
@@ -675,7 +675,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
                 else
                 {
                     allJokerCounts[playerNum] = jokerCount;
-                    cardsChosen[playerNum % 4] = playerCards[playerNum][lastChooseCardIndex];
+                    cardsChosen[playerNum] = playerCards[playerNum][lastChooseCardIndex];
                     sendEvent32(playerNum, false, cardsChosen[playerNum], lastChooseCardIndex, allJokerCounts[playerNum] == 1);
                     playerCards[playerNum].RemoveAt(lastChooseCardIndex);
                 }
@@ -683,7 +683,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
                 if (i == 0)
                 {
                     if (cardsChosen[playerNum][0] == 4) firstSuit = allJokerCounts[playerNum] - 2;
-                    else firstSuit = cardsChosen[playerNum % 4][0];
+                    else firstSuit = cardsChosen[playerNum][0];
                 }
 
                 playerNum += 1;
@@ -971,6 +971,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
     }
     void checkStartRoundAchievemnt()
     {
+        if (DC == null) return;
         if (allHands[myIndex].cardList.Any(x => x.Suit == 4)) 
         {
             DC.achievementProgress[5] += 1;
@@ -981,6 +982,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
     void checkEndRoundAchievemnt()
     {
+        if (DC == null) return;
         if (orderCardCount[myIndex] == cardCountForLevel[round] && orderCardCount[myIndex] == winCardCount[myIndex])
         {
             DC.achievementProgress[11] += 1;
@@ -1007,6 +1009,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
     void checkEndGameAchievemnt(int myPlace)
     {
+        if (DC == null) return;
         if (playersScore[myIndex] > 7000)
         {
             DC.save.achievementLevel[20] += 1;
