@@ -5700,7 +5700,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   singlePlayerGame: 0
   Network: {fileID: 1799441882}
-  DC: {fileID: 0}
+  DC: {fileID: 900729997}
   enemyID: 
   addFriendButton: {fileID: 0}
   scaler: {fileID: 1559555191}
