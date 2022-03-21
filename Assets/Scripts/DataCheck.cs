@@ -57,7 +57,7 @@ public class DataCheck : MonoBehaviour
     }
     IEnumerator showAchieveWinCoroutine(int index)
     {
-        winAchieveBoardText.text = "" + index;
+        winAchieveBoardText.text = "" + index + "место";
         float duration = 0.5f;
         var startPos = new Vector3(-72, 628, 0);;
         var endPos = new Vector3(-72, 452, 0);

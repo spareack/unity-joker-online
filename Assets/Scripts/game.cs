@@ -135,11 +135,16 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
     [SerializeField] private List<int> cardCountForLevel = new List<int>() 
     {
-        1, 2, 3, 4, 5, 6, 7, 8,  // 1 круг
-        9, 9, 9, 9,  // 2 круг
-        8, 7, 6, 5, 4, 3, 2, 1,  // 3 круг
-        9, 9, 9, 9  // 4 круг
+        1, 2, 3, 4, 5
     };
+    
+    // [SerializeField] private List<int> cardCountForLevel = new List<int>() 
+    // {
+    //     1, 2, 3, 4, 5, 6, 7, 8,  // 1 круг
+    //     9, 9, 9, 9,  // 2 круг
+    //     8, 7, 6, 5, 4, 3, 2, 1,  // 3 круг
+    //     9, 9, 9, 9  // 4 круг
+    // };
 
     //private int whichTurn;
 
@@ -589,6 +594,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
             endGameFunction();
             yield break;
         }
+        checkEndRoundAchievemnt();
         StartCoroutine(startMainSingleRoundCoroutine());
     }
 
