@@ -984,6 +984,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
             DC.achievementProgress[7] += allHands[myIndex].cardList.Where(x => x.Suit == 4).Count();
             if (allHands[myIndex].cardList.Where(x => x.Suit == 4).Count() > 1) DC.achievementProgress[6] += 1;
         }
+        DC.checkForAchievement();
     }
 
     void checkEndRoundAchievemnt()
@@ -1011,6 +1012,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
             if (winCardCount[myIndex] == 0) DC.achievementProgress[23] += 1;
             DC.achievementProgress[22] += 1;
         }
+        DC.checkForAchievement();
     }
 
     void checkEndGameAchievemnt(int myPlace)
@@ -1055,8 +1057,8 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         {
             DC.save.achievementProgress[24] += 1;
         }
+        checkForAchievement();
         DC.checkForAchievement();
-
     }
     private IEnumerator YouLose(int myPlace)
     {

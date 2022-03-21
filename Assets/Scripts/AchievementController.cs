@@ -43,7 +43,7 @@ public class AchievementController : MonoBehaviour
     {
         achievInfoCardText[0].text = LanguageSystem.lng.AchievementName[num];
         achievInfoCardText[1].text = LanguageSystem.lng.AchievementText[num];
-        achievInfoCardText[2].text = DC.save.achievementLevel[num] + " ���";
+        achievInfoCardText[2].text = DC.save.achievementLevel[num] + " раз";
 
         achievInfoCard.SetActive(true);
     }
