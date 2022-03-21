@@ -1057,7 +1057,6 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         {
             DC.save.achievementProgress[24] += 1;
         }
-        checkForAchievement();
         DC.checkForAchievement();
     }
     private IEnumerator YouLose(int myPlace)
