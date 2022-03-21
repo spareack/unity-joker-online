@@ -8,6 +8,7 @@ using UnityEngine;
 using System;
 using UnityEditor;
 using System.Linq;
+using UnityEngine.SceneManagement;
 
 using Random = UnityEngine.Random;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -135,16 +136,12 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
     [SerializeField] private List<int> cardCountForLevel = new List<int>() 
     {
-        1, 2, 3, 4, 5
+        1, 2, 3, 4, 5, 6, 7, 8,  // 1 круг
+        9, 9, 9, 9,  // 2 круг
+        8, 7, 6, 5, 4, 3, 2, 1,  // 3 круг
+        9, 9, 9, 9  // 4 круг
     };
     
-    // [SerializeField] private List<int> cardCountForLevel = new List<int>() 
-    // {
-    //     1, 2, 3, 4, 5, 6, 7, 8,  // 1 круг
-    //     9, 9, 9, 9,  // 2 круг
-    //     8, 7, 6, 5, 4, 3, 2, 1,  // 3 круг
-    //     9, 9, 9, 9  // 4 круг
-    // };
 
     //private int whichTurn;
 
@@ -354,6 +351,14 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
     void Start()
     {
+        cardCountForLevel = new List<int>() 
+        {
+            1, 2, 3, 4, 5, 6, 7, 8,  // 1 круг
+            9, 9, 9, 9,  // 2 круг
+            8, 7, 6, 5, 4, 3, 2, 1,  // 3 круг
+            9, 9, 9, 9  // 4 круг
+        };
+
         if (!singlePlayerGame)
         {
             if (PhotonNetwork.PlayerList.Length > 3)
@@ -960,7 +965,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         S.save.Rating += 50;
         S.saveChanges();
-        gamePlace.text = myPlace.ToString();
+        gamePlace.text = (myPlace+1).ToString() + " место";
         checkEndGameAchievemnt(myPlace);
 
         winEffect.SetActive(true);
@@ -973,7 +978,8 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
             yield return new WaitForSeconds(1f);
         }
 
-        Network.leaveGame();
+        if (singlePlayerGame) SceneManager.LoadScene(0);
+        else Network.leaveGame();
     }
     void checkStartRoundAchievemnt()
     {
