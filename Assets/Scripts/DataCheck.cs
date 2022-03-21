@@ -1,40 +1,113 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
+
 public class DataCheck : MonoBehaviour
 {
-    public DataSave DS = new DataSave();
+    public DataSave save = null;
+    public GameObject winAchieveBoard = null;
+    public Text winAchieveBoardText = null;
+    public int[] achievementProgress = new int[25];
+
+    private void Awake()
+    {
+        // PlayerPrefs.DeleteAll();
+
+        if (PlayerPrefs.HasKey("DataSave")) save = JsonUtility.FromJson<DataSave>(PlayerPrefs.GetString("DataSave"));
+        else
+        {
+            save = new DataSave();
+            saveChanges();
+        }
+    }
+    public void saveChanges()
+    {
+        PlayerPrefs.SetString("DataSave", JsonUtility.ToJson(save));
+        PlayerPrefs.Save();
+    }
+
+    public void checkForAchievement()
+    {
+        for(int i = 0; i < achievementProgress.Length; i += 1)
+        {
+            if (achievementProgress[i] >= save.achievementGoal[i])
+            {
+                achievementProgress[i] -= save.achievementGoal[i];
+                save.achievementLevel[i] += 1;
+                showAchieveWin(i);
+            }
+        }
+        for(int i = 0; i < save.achievementProgress.Length; i += 1)
+        {
+            if (save.achievementProgress[i] >= save.achievementGoal[i])
+            {
+                save.achievementProgress[i] -= save.achievementGoal[i];
+                save.achievementLevel[i] += 1;
+                showAchieveWin(i);
+            }
+        }
+        saveChanges();
+    }
+
+    public void showAchieveWin(int index)
+    {
+        StartCoroutine(showAchieveWinCoroutine(index));
+    }
+    IEnumerator showAchieveWinCoroutine(int index)
+    {
+        winAchieveBoardText.text = "" + index;
+        float duration = 0.5f;
+        var startPos = new Vector3(-72, 628, 0);;
+        var endPos = new Vector3(-72, 452, 0);
+        for(float t = 0; t < duration; t += Time.deltaTime)
+        {
+            winAchieveBoard.transform.localPosition = Vector3.Lerp(startPos, endPos, t / duration);
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(2f);
+
+        for(float t = 0; t < duration; t += Time.deltaTime)
+        {
+            winAchieveBoard.transform.localPosition = Vector3.Lerp(endPos, startPos, t / duration);
+            yield return null;
+        }
+    }
 }
+
 [Serializable]
 public class DataSave
 {
     public int[] achievementGoal = new int[25]
     {
-        100, // 0 --- | Âûèãðàòü 100 ðåéòèíãîâûõ ìàò÷åé
-        10, // 1 --- | Èãðîê 10 ðàç ïîäðÿä çàíèìàåò íå íèæå âòîðîãî ìåñòà
-        20, // 2 --- | Èãðîê 20 ðàç ïîäðÿä çàíèìàåò íå íèæå âòîðîãî ìåñòà
-        30, // 3 --- | Èãðîê 30 ðàç ïîäðÿä çàíèìàåò íå íèæå âòîðîãî ìåñòà
-        50, // 4 --- | Èãðîê 50 ðàç ïîäðÿä çàíèìàåò íå íèæå âòîðîãî ìåñòà
-        5, // 5 --- | 5 ðàçäà÷ ïîäðÿä èãðîêó ïðèõîäèò Äæîêåð
-        3, // 6 --- | 3 ðàçäà÷è ïîäðÿä èãðîêó ïðèõîäÿò 2 Äæîêåðà
-        20, // 7 --- | Áîëåå 20 äæîêåðîâ çà îäíó ïàðòèþ
-        3, // 8 --- | Äàåòñÿ èãðîêó, çàíÿâøåìó 3 ðàçà ïîäðÿä ïåðâîå ìåñòî
-        4, // 9 --- | Äàåòñÿ èãðîêó, çàíÿâøåìó 4 ðàçà ïîäðÿä ïåðâîå ìåñòî
-        5, // 10 --- | Äàåòñÿ èãðîêó, çàíÿâøåìó 5 ðàçà ïîäðÿä ïåðâîå ìåñòî
-        2, // 11 --- | 2 ïðåìèè çà èãðó
-        3, // 12 --- | 3 ïðåìèè çà èãðó
-        4, // 13 --- | 4 ïðåìèè çà èãðó
-        4, // 14 --- | Èãðîê 4 ðàçà âûøåë íà ïðåìèþ, âñå ïðîòèâíèêè æå áûëè ïî 4 ðàçà èñïîð÷åíû
-        1, // 15 --- | Èãðîê âçÿë 9 èç 9
-        2, // 16 --- | Èãðîê âçÿë 9 èç 9, äâàæäû çà îäó ïàðòèþ
-        3, // 17 --- | Èãðîê âçÿë 9 èç 9, òðèæäû çà îäó ïàðòèþ
-        4, // 18 --- | Èãðîê âçÿë 9 èç 9, ÷åòûðåæäû çà îäó ïàðòèþ
-        0, // 19 --- | Îäåðæàíà ïîáåäà ñ äâóêðàòíûì ïåðåâîñõîäñòâîì
-        7000, // 20 --- | Áîëåå 7000 î÷êîâ çà ïàðòèþ
-        0, // 21 --- | Èãðîê, çàíèìàâøèé ïåðâûå òðè ïóëüêè 4 ìåñòî, âûðâàë ïîáåäó â ïîñëåäíåé ïóëüêå
-        15, // 22 --- Íåäîáîð 15 ðàç â ïðåäåëàõ îäíîé ïàðòèè
-        6, // 23 --- | Äàåòñÿ èãðîêó, êîòîðûé óìóäðèëñÿ ïîëó÷èòü 6 "øòàíã" â îäíîé ïóëüêå
-        1 // 24 --- | Äà¸òñÿ, ïðè ïîêóïêå ëþáîãî ïðåäìåòà â ìàãàçèíå
+        100, // 0 --- | Ð’Ñ‹Ð¸Ð³Ñ€Ð°Ñ‚ÑŒ 100 Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³Ð¾Ð²Ñ‹Ñ… Ð¼Ð°Ñ‚Ñ‡ÐµÐ¹
+        10, // 1 --- | Ð˜Ð³Ñ€Ð¾Ðº 10 Ñ€Ð°Ð· Ð¿Ð¾Ð´Ñ€ÑÐ´ Ð·Ð°Ð½Ð¸Ð¼Ð°ÐµÑ‚ Ð½Ðµ Ð½Ð¸Ð¶Ðµ Ð²Ñ‚Ð¾Ñ€Ð¾Ð³Ð¾ Ð¼ÐµÑÑ‚Ð°
+        20, // 2 --- | Ð˜Ð³Ñ€Ð¾Ðº 20 Ñ€Ð°Ð· Ð¿Ð¾Ð´Ñ€ÑÐ´ Ð·Ð°Ð½Ð¸Ð¼Ð°ÐµÑ‚ Ð½Ðµ Ð½Ð¸Ð¶Ðµ Ð²Ñ‚Ð¾Ñ€Ð¾Ð³Ð¾ Ð¼ÐµÑÑ‚Ð°
+        30, // 3 --- | Ð˜Ð³Ñ€Ð¾Ðº 30 Ñ€Ð°Ð· Ð¿Ð¾Ð´Ñ€ÑÐ´ Ð·Ð°Ð½Ð¸Ð¼Ð°ÐµÑ‚ Ð½Ðµ Ð½Ð¸Ð¶Ðµ Ð²Ñ‚Ð¾Ñ€Ð¾Ð³Ð¾ Ð¼ÐµÑÑ‚Ð°
+        50, // 4 --- | Ð˜Ð³Ñ€Ð¾Ðº 50 Ñ€Ð°Ð· Ð¿Ð¾Ð´Ñ€ÑÐ´ Ð·Ð°Ð½Ð¸Ð¼Ð°ÐµÑ‚ Ð½Ðµ Ð½Ð¸Ð¶Ðµ Ð²Ñ‚Ð¾Ñ€Ð¾Ð³Ð¾ Ð¼ÐµÑÑ‚Ð°
+        5, // 5 --- | 5 Ñ€Ð°Ð·Ð´Ð°Ñ‡ Ð¿Ð¾Ð´Ñ€ÑÐ´ Ð¸Ð³Ñ€Ð¾ÐºÑƒ Ð¿Ñ€Ð¸Ñ…Ð¾Ð´Ð¸Ñ‚ Ð”Ð¶Ð¾ÐºÐµÑ€
+        3, // 6 --- | 3 Ñ€Ð°Ð·Ð´Ð°Ñ‡Ð¸ Ð¿Ð¾Ð´Ñ€ÑÐ´ Ð¸Ð³Ñ€Ð¾ÐºÑƒ Ð¿Ñ€Ð¸Ñ…Ð¾Ð´ÑÑ‚ 2 Ð”Ð¶Ð¾ÐºÐµÑ€Ð°
+        20, // 7 --- | Ð‘Ð¾Ð»ÐµÐµ 20 Ð´Ð¶Ð¾ÐºÐµÑ€Ð¾Ð² Ð·Ð° Ð¾Ð´Ð½Ñƒ Ð¿Ð°Ñ€Ñ‚Ð¸ÑŽ
+        3, // 8 --- | Ð”Ð°ÐµÑ‚ÑÑ Ð¸Ð³Ñ€Ð¾ÐºÑƒ, Ð·Ð°Ð½ÑÐ²ÑˆÐµÐ¼Ñƒ 3 Ñ€Ð°Ð·Ð° Ð¿Ð¾Ð´Ñ€ÑÐ´ Ð¿ÐµÑ€Ð²Ð¾Ðµ Ð¼ÐµÑÑ‚Ð¾
+        4, // 9 --- | Ð”Ð°ÐµÑ‚ÑÑ Ð¸Ð³Ñ€Ð¾ÐºÑƒ, Ð·Ð°Ð½ÑÐ²ÑˆÐµÐ¼Ñƒ 4 Ñ€Ð°Ð·Ð° Ð¿Ð¾Ð´Ñ€ÑÐ´ Ð¿ÐµÑ€Ð²Ð¾Ðµ Ð¼ÐµÑÑ‚Ð¾
+        5, // 10 --- | Ð”Ð°ÐµÑ‚ÑÑ Ð¸Ð³Ñ€Ð¾ÐºÑƒ, Ð·Ð°Ð½ÑÐ²ÑˆÐµÐ¼Ñƒ 5 Ñ€Ð°Ð·Ð° Ð¿Ð¾Ð´Ñ€ÑÐ´ Ð¿ÐµÑ€Ð²Ð¾Ðµ Ð¼ÐµÑÑ‚Ð¾
+        2, // 11 --- | 2 Ð¿Ñ€ÐµÐ¼Ð¸Ð¸ Ð·Ð° Ð¸Ð³Ñ€Ñƒ
+        3, // 12 --- | 3 Ð¿Ñ€ÐµÐ¼Ð¸Ð¸ Ð·Ð° Ð¸Ð³Ñ€Ñƒ
+        4, // 13 --- | 4 Ð¿Ñ€ÐµÐ¼Ð¸Ð¸ Ð·Ð° Ð¸Ð³Ñ€Ñƒ
+        4, // 14 --- | Ð˜Ð³Ñ€Ð¾Ðº 4 Ñ€Ð°Ð·Ð° Ð²Ñ‹ÑˆÐµÐ» Ð½Ð° Ð¿Ñ€ÐµÐ¼Ð¸ÑŽ, Ð¿Ð¾Ð´Ñ€ÑÐ´
+        1, // 15 --- | Ð˜Ð³Ñ€Ð¾Ðº Ð²Ð·ÑÐ» 9 Ð¸Ð· 9
+        2, // 16 --- | Ð˜Ð³Ñ€Ð¾Ðº Ð²Ð·ÑÐ» 9 Ð¸Ð· 9, Ð´Ð²Ð°Ð¶Ð´Ñ‹ Ð·Ð° Ð¾Ð´Ñƒ Ð¿Ð°Ñ€Ñ‚Ð¸ÑŽ
+        3, // 17 --- | Ð˜Ð³Ñ€Ð¾Ðº Ð²Ð·ÑÐ» 9 Ð¸Ð· 9, Ñ‚Ñ€Ð¸Ð¶Ð´Ñ‹ Ð·Ð° Ð¾Ð´Ñƒ Ð¿Ð°Ñ€Ñ‚Ð¸ÑŽ
+        4, // 18 --- | Ð˜Ð³Ñ€Ð¾Ðº Ð²Ð·ÑÐ» 9 Ð¸Ð· 9, Ñ‡ÐµÑ‚Ñ‹Ñ€ÐµÐ¶Ð´Ñ‹ Ð·Ð° Ð¾Ð´Ñƒ Ð¿Ð°Ñ€Ñ‚Ð¸ÑŽ
+        1, // 19 --- | ÐžÐ´ÐµÑ€Ð¶Ð°Ð½Ð° Ð¿Ð¾Ð±ÐµÐ´Ð° Ñ Ð´Ð²ÑƒÐºÑ€Ð°Ñ‚Ð½Ñ‹Ð¼ Ð¿ÐµÑ€ÐµÐ²Ð¾ÑÑ…Ð¾Ð´ÑÑ‚Ð²Ð¾Ð¼
+        7000, // 20 --- | Ð‘Ð¾Ð»ÐµÐµ 7000 Ð¾Ñ‡ÐºÐ¾Ð² Ð·Ð° Ð¿Ð°Ñ€Ñ‚Ð¸ÑŽ
+        10, // 21 --- | Ð˜Ð³Ñ€Ð¾Ðº Ð·Ð°Ð½ÑÐ» 4 Ð¼ÐµÑÑ‚Ð¾ 10 Ñ€Ð°Ð·
+        15, // 22 --- ÐÐµÐ´Ð¾Ð±Ð¾Ñ€ 15 Ñ€Ð°Ð· Ð² Ð¿Ñ€ÐµÐ´ÐµÐ»Ð°Ñ… Ð¾Ð´Ð½Ð¾Ð¹ Ð¿Ð°Ñ€Ñ‚Ð¸Ð¸
+        6, // 23 --- | Ð”Ð°ÐµÑ‚ÑÑ Ð¸Ð³Ñ€Ð¾ÐºÑƒ, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ ÑƒÐ¼ÑƒÐ´Ñ€Ð¸Ð»ÑÑ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ 6 ''ÑˆÑ‚Ð°Ð½Ð³'' Ð² Ð¾Ð´Ð½Ð¾Ð¹ Ð¿ÑƒÐ»ÑŒÐºÐµ
+        1 // 24 --- | Ð”Ð°Ñ‘Ñ‚ÑÑ, Ð¿Ñ€Ð¸ Ð¿Ð¾ÐºÑƒÐ¿ÐºÐµ Ð»ÑŽÐ±Ð¾Ð³Ð¾ Ð¿Ñ€ÐµÐ´Ð¼ÐµÑ‚Ð° Ð² Ð¼Ð°Ð³Ð°Ð·Ð¸Ð½Ðµ
     };
     public int[] achievementLevel = new int[25];
+    public int[] achievementProgress = new int[25];
 }

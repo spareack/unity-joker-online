@@ -17,6 +17,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
     public bool singlePlayerGame = false;
 
     [SerializeField] public networkManager Network;
+    [SerializeField] private DataCheck DC;
 
     [SerializeField] private string enemyID = "";
     private bool waitingOpponent = true;
@@ -32,6 +33,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
     [SerializeField] private Text timesRemainText;
     [SerializeField] private Text whichTurnText;
+    [SerializeField] private Text gamePlace;
 
     [SerializeField] private Image firstAvatar;
     [SerializeField] private Image firstAvatarOutline;
@@ -582,6 +584,11 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         winCardCount = new int[] { 0, 0, 0, 0 };
 
         round += 1;
+        if (round >= cardCountForLevel.Count)
+        {
+            endGameFunction();
+            yield break;
+        }
         StartCoroutine(startMainSingleRoundCoroutine());
     }
 
@@ -698,6 +705,12 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
         winCardCount = new int[] { 0, 0, 0, 0 };
 
         round += 1;
+        if (round >= cardCountForLevel.Count)
+        {
+            endGameFunction();
+            yield break;
+        }
+        checkEndRoundAchievemnt();
         StartCoroutine(startPreparingRoundCoroutine());
     }
 
@@ -874,6 +887,7 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
                 yield return new WaitForSeconds(0.1f);
             }
         }
+        checkStartRoundAchievemnt();
         StartCoroutine(AddTrump(trump[0], trump[1]));
     }
 
@@ -925,14 +939,23 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
     private void endGameFunction()
     {
+        var myPlace = new HashSet<int>(playersScore).OrderBy(x => x).ToList().IndexOf(playersScore[myIndex]);
+
+        StartCoroutine(YouWin(myPlace));
+
+        // if (playersScore[myIndex] == playersScore.Max()) StartCoroutine(YouWin(myPlace));
+        // else StartCoroutine(YouLose(myPlace));
+
         // Network.leaveGame();
         //else drawGame();
     }
 
-    private IEnumerator YouWin()
+    private IEnumerator YouWin(int myPlace)
     {
         S.save.Rating += 50;
         S.saveChanges();
+        gamePlace.text = myPlace.ToString();
+        checkEndGameAchievemnt(myPlace);
 
         winEffect.SetActive(true);
         winScreen.SetActive(true);
@@ -946,7 +969,87 @@ public class game : MonoBehaviourPunCallbacks, IOnEventCallback
 
         Network.leaveGame();
     }
-    private IEnumerator YouLose()
+    void checkStartRoundAchievemnt()
+    {
+        if (allHands[myIndex].cardList.Any(x => x.Suit == 4)) 
+        {
+            DC.achievementProgress[5] += 1;
+            DC.achievementProgress[7] += allHands[myIndex].cardList.Where(x => x.Suit == 4).Count();
+            if (allHands[myIndex].cardList.Where(x => x.Suit == 4).Count() > 1) DC.achievementProgress[6] += 1;
+        }
+    }
+
+    void checkEndRoundAchievemnt()
+    {
+        if (orderCardCount[myIndex] == cardCountForLevel[round] && orderCardCount[myIndex] == winCardCount[myIndex])
+        {
+            DC.achievementProgress[11] += 1;
+            DC.achievementProgress[12] += 1;
+            DC.achievementProgress[13] += 1;
+            DC.achievementProgress[14] += 1;
+        }
+        else DC.achievementProgress[14] = 0;
+
+        if (orderCardCount[myIndex] == 9 && orderCardCount[myIndex] == winCardCount[myIndex])
+        {
+            DC.achievementProgress[15] += 1;
+            DC.achievementProgress[16] += 1;
+            DC.achievementProgress[17] += 1;
+            DC.achievementProgress[18] += 1;
+        }
+
+        if (orderCardCount[myIndex] > winCardCount[myIndex])
+        {
+            if (winCardCount[myIndex] == 0) DC.achievementProgress[23] += 1;
+            DC.achievementProgress[22] += 1;
+        }
+    }
+
+    void checkEndGameAchievemnt(int myPlace)
+    {
+        if (playersScore[myIndex] > 7000)
+        {
+            DC.save.achievementLevel[20] += 1;
+            DC.showAchieveWin(20);
+        }
+        if (myPlace == 0) 
+        {
+            DC.save.achievementProgress[0] += 1;
+
+            DC.save.achievementProgress[8] += 1;
+            DC.save.achievementProgress[9] += 1;
+            DC.save.achievementProgress[10] += 1;
+
+            if ( ( playersScore.Max() - playersScore.Min() ) * 2 > playersScore.Max() )
+            {
+                DC.save.achievementLevel[19] += 1;
+                DC.showAchieveWin(19);
+            }
+        }
+        else
+        {
+            DC.save.achievementProgress[8] = 0;
+            DC.save.achievementProgress[9] = 0;
+            DC.save.achievementProgress[10] = 0;
+        }
+
+        if (myPlace < 2)
+        {
+            DC.save.achievementProgress[1] += 1;
+            DC.save.achievementProgress[2] += 1;
+            DC.save.achievementProgress[3] += 1;
+            DC.save.achievementProgress[4] += 1;
+
+        }
+
+        if (myPlace == 3)
+        {
+            DC.save.achievementProgress[24] += 1;
+        }
+        DC.checkForAchievement();
+
+    }
+    private IEnumerator YouLose(int myPlace)
     {
         loseScreen.SetActive(true);
         yield return new WaitForSeconds(5f);
