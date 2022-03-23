@@ -48,5 +48,8 @@ public class languages
 {
     public string[] AchievementName = new string[25];
     public string[] AchievementText = new string[25];
+    public string[] tablesVariantName = new string[15];
+    public string[] tablesVariantText = new string[15];
+    public string[] tablesVariantPrice = new string[15];
 }
 

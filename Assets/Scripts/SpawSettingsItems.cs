@@ -7,7 +7,8 @@ public class SpawSettingsItems : MonoBehaviour
 {
     [Range(1, 50)]
     [Header("Controllers")]
-    public int panCount;
+    public int panCount1;
+    public int panCount2;
     [Range(0, 1000)]
     public int panOffset;
     [Range(0f, 20f)]
@@ -40,6 +41,7 @@ public class SpawSettingsItems : MonoBehaviour
     [SerializeField] private GameObject content2;
 
     [SerializeField] private GameObject[] settingsMenues;
+    [SerializeField] private Sprite[]tablesVariant;
 
     private int whichScroll = 2;
 
@@ -59,11 +61,21 @@ public class SpawSettingsItems : MonoBehaviour
     private void SpawnScroll1()
     {
         contentRect1 = content1.GetComponent<RectTransform>();
-        instPans1 = new GameObject[panCount];
-        pansPos1 = new Vector2[panCount];
-        for (int i = 0; i < panCount; i++)
+        instPans1 = new GameObject[panCount1];
+        pansPos1 = new Vector2[panCount1];
+        for (int i = 0; i < panCount1; i++)
         {
             instPans1[i] = Instantiate(panPrefab1, content1.transform, false);
+
+            Image[] img = instPans1[i].GetComponentsInChildren<Image>();
+            img[1].sprite = tablesVariant[i];
+
+            Text[] txt = instPans1[i].GetComponentsInChildren<Text>();
+            txt[0].text = LanguageSystem.lng.tablesVariantName[i];
+            txt[1].text = LanguageSystem.lng.tablesVariantText[i];
+            txt[2].text = LanguageSystem.lng.tablesVariantPrice[i];
+
+
             if (i == 0) continue;
             instPans1[i].transform.localPosition = new Vector2(instPans1[i].transform.localPosition.x,
                 instPans1[i - 1].transform.localPosition.y - panPrefab1.GetComponent<RectTransform>().sizeDelta.y - panOffset);
@@ -76,9 +88,9 @@ public class SpawSettingsItems : MonoBehaviour
     private void SpawnScroll2()
     {
         contentRect2 = content2.GetComponent<RectTransform>();
-        instPans2 = new GameObject[panCount];
-        pansPos2 = new Vector2[panCount];
-        for (int i = 0; i < panCount; i++)
+        instPans2 = new GameObject[panCount2];
+        pansPos2 = new Vector2[panCount2];
+        for (int i = 0; i < panCount2; i++)
         {
             instPans2[i] = Instantiate(panPrefab2, content2.transform, false);
             if (i == 0) continue;
@@ -113,7 +125,7 @@ public class SpawSettingsItems : MonoBehaviour
                 scrollRectType1.inertia = false;
             }
             float nearestPos = float.MaxValue;
-            for (int i = 1; i < panCount - 2; i++)
+            for (int i = 1; i < panCount1 - 2; i++)
             {
                 float distance = Mathf.Abs(contentRect1.anchoredPosition.y - pansPos1[i].y);
                 if (distance < nearestPos)
@@ -135,7 +147,7 @@ public class SpawSettingsItems : MonoBehaviour
                 scrollRectType2.inertia = false;
             }
             float nearestPos = float.MaxValue;
-            for (int i = 1; i < panCount - 2; i++)
+            for (int i = 1; i < panCount2 - 2; i++)
             {
                 float distance = Mathf.Abs(contentRect2.anchoredPosition.y - pansPos2[i].y);
                 if (distance < nearestPos)

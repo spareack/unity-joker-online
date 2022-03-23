@@ -14,7 +14,6 @@ public class AchievementController : MonoBehaviour
     [SerializeField] private MainMenuController MainMenuControllerScr;
 
 
-
     private void Start()
     {
         SpawnAchiev();

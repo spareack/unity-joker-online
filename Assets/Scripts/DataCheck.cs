@@ -110,4 +110,5 @@ public class DataSave
     };
     public int[] achievementLevel = new int[25];
     public int[] achievementProgress = new int[25];
+    public int[] tables = new int[15];
 }
