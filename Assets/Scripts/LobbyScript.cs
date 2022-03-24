@@ -157,7 +157,7 @@ public class LobbyScript : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log(PhotonNetwork.NickName + " connected to Master");
+        //Debug.Log(PhotonNetwork.NickName + " connected to Master");
         createRoomButton.interactable = true;
         joinRoomButton.interactable = true;
     }
