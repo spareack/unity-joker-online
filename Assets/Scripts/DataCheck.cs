@@ -110,5 +110,14 @@ public class DataSave
     };
     public int[] achievementLevel = new int[25];
     public int[] achievementProgress = new int[25];
+
     public int[] tables = new int[15];
+    public int choosenTable = 0;
+
+    public int[] decks = new int[15];
+    public int choosenDeck = 0;
+
+    public int[] settings = new int[15];
+
+    public int yourRank;
 }

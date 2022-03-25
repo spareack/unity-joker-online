@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class SpawSettingsItems : MonoBehaviour
 {
-    [Range(1, 50)]
     [Header("Controllers")]
     public int panCount1;
     public int panCount2;
@@ -41,9 +40,30 @@ public class SpawSettingsItems : MonoBehaviour
     [SerializeField] private GameObject content2;
 
     [SerializeField] private GameObject[] settingsMenues;
-    [SerializeField] private Sprite[]tablesVariant;
+
+    [SerializeField] private Button[] settingsMenuesButton;
+
+    [SerializeField] private Sprite[] tablesVariant;
+    [SerializeField] private Sprite[] decksVariant;
+
+    private Color buyedColor = new Color(1, 0.7795244f, 0);
+
+    private Color pressedColor = new Color(0.5411765f, 0.5411765f, 0.5411765f);
+    private Color unPressedColor = new Color(0.42f, 0.42f, 0.42f);
+
+
+
+    private List<Button> buttons1 = new List<Button>();
+    private List<Button> buttons2 = new List<Button>();
+    private List<Image> images1 = new List<Image>();
+    private List<Image> images2 = new List<Image>();
+
+    [SerializeField] private List<Button> settingButton = new List<Button>();
 
     private int whichScroll = 2;
+
+
+    [SerializeField] private DataCheck DC;
 
     private void Awake()
     {
@@ -57,9 +77,11 @@ public class SpawSettingsItems : MonoBehaviour
     {
         SpawnScroll1();
         SpawnScroll2();
+        SettingsGiveColor();
     }
     private void SpawnScroll1()
     {
+        DC.save.tables[0] = 1;
         contentRect1 = content1.GetComponent<RectTransform>();
         instPans1 = new GameObject[panCount1];
         pansPos1 = new Vector2[panCount1];
@@ -68,12 +90,30 @@ public class SpawSettingsItems : MonoBehaviour
             instPans1[i] = Instantiate(panPrefab1, content1.transform, false);
 
             Image[] img = instPans1[i].GetComponentsInChildren<Image>();
-            img[1].sprite = tablesVariant[i];
-
             Text[] txt = instPans1[i].GetComponentsInChildren<Text>();
+            Button[] but = instPans1[i].GetComponentsInChildren<Button>();
+            int num = i;
+
+            img[1].sprite = tablesVariant[i];
+            
             txt[0].text = LanguageSystem.lng.tablesVariantName[i];
             txt[1].text = LanguageSystem.lng.tablesVariantText[i];
             txt[2].text = LanguageSystem.lng.tablesVariantPrice[i];
+
+            but[0].onClick.AddListener(() => MenuBuyButton1(num));
+
+            buttons1.Add(but[0]);
+            images1.Add(img[2]);
+
+            if (DC.save.tables[i] != 0)
+            {
+                but[0].GetComponent<Image>().color = buyedColor;
+                img[2].gameObject.SetActive(false);
+            }
+            if(DC.save.choosenTable == i)
+            {
+                but[0].gameObject.SetActive(false);
+            }
 
 
             if (i == 0) continue;
@@ -87,12 +127,40 @@ public class SpawSettingsItems : MonoBehaviour
 
     private void SpawnScroll2()
     {
+        DC.save.decks[0] = 1;
         contentRect2 = content2.GetComponent<RectTransform>();
         instPans2 = new GameObject[panCount2];
         pansPos2 = new Vector2[panCount2];
         for (int i = 0; i < panCount2; i++)
         {
             instPans2[i] = Instantiate(panPrefab2, content2.transform, false);
+
+            Image[] img = instPans2[i].GetComponentsInChildren<Image>();
+            Text[] txt = instPans2[i].GetComponentsInChildren<Text>();
+            Button[] but = instPans2[i].GetComponentsInChildren<Button>();
+            int num = i;
+
+            img[1].sprite = decksVariant[i];
+
+            txt[0].text = LanguageSystem.lng.decksVariantName[i];
+            txt[1].text = LanguageSystem.lng.decksVariantText[i];
+            txt[2].text = LanguageSystem.lng.decksVariantPrice[i];
+
+            but[0].onClick.AddListener(() => MenuBuyButton2(num));
+
+            buttons2.Add(but[0]);
+            images2.Add(img[2]);
+
+            if (DC.save.decks[i] != 0)
+            {
+                but[0].GetComponent<Image>().color = buyedColor;
+                img[2].gameObject.SetActive(false);
+            }
+            if (DC.save.choosenDeck == i)
+            {
+                but[0].gameObject.SetActive(false);
+            }
+
             if (i == 0) continue;
             instPans2[i].transform.localPosition = new Vector2(instPans2[i].transform.localPosition.x,
                 instPans2[i - 1].transform.localPosition.y - panPrefab2.GetComponent<RectTransform>().sizeDelta.y - panOffset);
@@ -183,8 +251,82 @@ public class SpawSettingsItems : MonoBehaviour
         for(int i = 0; i < settingsMenues.Length; i++)
         {
             settingsMenues[i].SetActive(false);
+            settingsMenuesButton[i].GetComponent<Image>().color = unPressedColor;
         }
         settingsMenues[num].SetActive(true);
+        settingsMenuesButton[num].GetComponent<Image>().color = pressedColor;
+
         whichScroll = num;
+    }
+
+
+    public void MenuBuyButton1(int num)
+    {
+        // Добавить проверку на монеты
+        if (DC.save.tables[num] == 0)
+        {
+            DC.save.tables[num] = 1;
+            DC.save.choosenTable = num;
+            buttons1[num].GetComponent<Image>().color = buyedColor;
+            images1[num].gameObject.SetActive(false);
+        }
+        else
+        {
+            DC.save.choosenTable = num;
+        }
+
+        for (int i = 0; i < buttons1.Count; i++)
+        {
+            buttons1[i].gameObject.SetActive(true);
+        }
+        buttons1[DC.save.choosenTable].gameObject.SetActive(false);
+        DC.saveChanges();
+    }
+
+    public void MenuBuyButton2(int num)
+    {
+        // Добавить проверку на монеты
+        if (DC.save.decks[num] == 0)
+        {
+            DC.save.decks[num] = 1;
+            DC.save.choosenDeck = num;
+            buttons2[num].GetComponent<Image>().color = buyedColor;
+            images2[num].gameObject.SetActive(false);
+        }
+        else
+        {
+            DC.save.choosenDeck = num;
+        }
+
+        for (int i = 0; i < buttons2.Count; i++)
+        {
+            buttons2[i].gameObject.SetActive(true);
+        }
+        buttons2[DC.save.choosenDeck].gameObject.SetActive(false);
+        DC.saveChanges();
+    }
+
+    public void SettingsController(int num)
+    {
+        if (DC.save.settings[num] == 0)
+        {
+            DC.save.settings[num] = 1;
+            settingButton[num].GetComponent<Image>().color = Color.green;
+        }
+        else if (DC.save.settings[num] == 1)
+        {
+            DC.save.settings[num] = 0;
+            settingButton[num].GetComponent<Image>().color = Color.white;
+        }
+        DC.saveChanges();
+    }
+
+    private void SettingsGiveColor()
+    {
+        for (int i = 0; i < settingButton.Count; i++)
+        {
+            if (DC.save.settings[i] == 1) settingButton[i].GetComponent<Image>().color = Color.green;
+        }
+        settingsMenues[3].SetActive(false);
     }
 }

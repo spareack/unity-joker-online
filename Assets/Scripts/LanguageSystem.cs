@@ -48,8 +48,16 @@ public class languages
 {
     public string[] AchievementName = new string[25];
     public string[] AchievementText = new string[25];
+
     public string[] tablesVariantName = new string[15];
     public string[] tablesVariantText = new string[15];
     public string[] tablesVariantPrice = new string[15];
+
+    public string[] decksVariantName = new string[15];
+    public string[] decksVariantText = new string[15];
+    public string[] decksVariantPrice = new string[15];
+
+    public string[] ranks = new string[10];
+    public string[] ranksHowManyPoints = new string[10];
 }
 
