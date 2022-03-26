@@ -133,6 +133,7 @@ public class ServerSync : MonoBehaviour
                 else Debug.Log("error post registerNewPlayer " + response.info);
             }
         }
+
         [System.Serializable]
         public class Clan_info_send
         {
@@ -146,11 +147,12 @@ public class ServerSync : MonoBehaviour
             public string description = string.Empty;
             public int clan_score = 0;
             public List<Member> members = null;
-            public 
+            public List<MessagesData> messages_data = null;
 
             public int status = -1;
             public string info = string.Empty;
         }
+
         [System.Serializable]
         public class Member
         {
@@ -158,8 +160,13 @@ public class ServerSync : MonoBehaviour
             public string name = string.Empty;
             public int score = 0;
         }
-        []
-        messages_data
+
+        [System.Serializable]
+        public class MessagesData
+        {
+            public string sender = string.Empty;
+            public string text = string.Empty;
+        }
     }
 
 
