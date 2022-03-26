@@ -86,7 +86,7 @@
     <Compile Include="Assets\Scripts\SinglePlayerGame.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\TextToggleIsOnTransition.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\OnStartDelete.cs" />
-    <Compile Include="Assets\Scripts\server_sync.cs" />
+    <Compile Include="Assets\Scripts\ServerSync.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Photon\PhotonLibs\netstandard2.0\Photon3Unity3D.xml" />
