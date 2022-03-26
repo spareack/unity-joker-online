@@ -45,7 +45,6 @@ public class chatScr : MonoBehaviour, IChatClientListener
         else message.transform.position = textPrefabInactive.transform.position;
 
         messagesList.Add(rectComp);
-
         contentRect.anchoredPosition += new Vector2(0, messageInterval * 2f);
 
     }
