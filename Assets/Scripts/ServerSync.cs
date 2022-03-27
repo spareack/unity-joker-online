@@ -81,7 +81,7 @@ public class ServerSync : MonoBehaviour
                 if (response != null && response.status == 0) response = JsonUtility.FromJson<ResponseClass>(uwr.downloadHandler.text);
                 else
                 {
-                    Debug.Log("error post registerNewPlayer " + response.info);
+                    //Debug.Log("error post registerNewPlayer " + response.info);
                 }
             }
         }

@@ -21,7 +21,10 @@ public class LobbyScript : MonoBehaviourPunCallbacks
     [SerializeField] public Sprite defaultTexture;
 
     [SerializeField] public Text personalScore;
+
     [SerializeField] private Saver S;
+    [SerializeField] private DataCheck DC;
+    [SerializeField] private MainMenuController MMC;
 
     [SerializeField] private GameObject ScrollContent;
     [SerializeField] private GameObject friendPrefab;
@@ -215,8 +218,14 @@ public class LobbyScript : MonoBehaviourPunCallbacks
     public void saveNewNickname()
     {
         S.save.Nickname = NicknameInput.text;
+        DC.save.youSaveNameCheck = 1;
         S.saveChanges();
+        DC.saveChanges();
         PhotonNetwork.NickName = S.save.Nickname;
+        Debug.Log(S.save.Nickname);
+        Debug.Log(S.save.ID);
+        StartCoroutine(MMC.registerNewPlayer(S.save.Nickname, S.save.ID));
+
     }
     public void removeAvatar()
     {

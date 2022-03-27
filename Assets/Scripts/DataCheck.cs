@@ -80,6 +80,10 @@ public class DataCheck : MonoBehaviour
 [Serializable]
 public class DataSave
 {
+    public int youSaveNameCheck = 0;
+    public int yourClaneID = -2;
+
+
     public int[] achievementGoal = new int[25]
     {
         100, // 0 --- | Выиграть 100 рейтинговых матчей
