@@ -21,7 +21,7 @@ public class ServerSync : MonoBehaviour
 
     public class JoinClan
     {
-        public Status_check statusCheck = null;
+        public Status_check response = null;
         public IEnumerator JoinClanCoroutine(string actor_num, int clan_id)
         {
             var uwr = new UnityWebRequest("https://dumka.pythonanywhere.com/join_clan", "POST");
@@ -37,16 +37,7 @@ public class ServerSync : MonoBehaviour
             yield return uwr.SendWebRequest();
 
             if (uwr.result == UnityWebRequest.Result.ConnectionError) Debug.Log("Error While Sending: " + uwr.error);
-            else
-            {
-                var statusCheck = JsonUtility.FromJson<Status_check>(uwr.downloadHandler.text);
-                
-                if (statusCheck != null && statusCheck.status == 0) Debug.Log("succesfull post registerNewPlayer " + statusCheck.info);
-                else
-                {
-                    Debug.Log("error post registerNewPlayer " + statusCheck.info);
-                }
-            }
+            else response = JsonUtility.FromJson<Status_check>(uwr.downloadHandler.text);
         }
 
         [System.Serializable]
@@ -63,6 +54,7 @@ public class ServerSync : MonoBehaviour
         public ResponseClass response = null;
         public IEnumerator CreateClanCoroutine(string actor_num, string name, string description)
         {
+            Debug.Log(actor_num + " !!!!!1");
             var uwr = new UnityWebRequest("https://dumka.pythonanywhere.com/create_clan", "POST");
 
             var data = new SendClass { actor_num = actor_num, clan_name = name, description = description };
@@ -76,14 +68,7 @@ public class ServerSync : MonoBehaviour
             yield return uwr.SendWebRequest();
 
             if (uwr.result == UnityWebRequest.Result.ConnectionError) Debug.Log("Error While Sending: " + uwr.error);
-            else
-            {
-                if (response != null && response.status == 0) response = JsonUtility.FromJson<ResponseClass>(uwr.downloadHandler.text);
-                else
-                {
-                    //Debug.Log("error post registerNewPlayer " + response.info);
-                }
-            }
+            else response = JsonUtility.FromJson<ResponseClass>(uwr.downloadHandler.text);
         }
 
         [System.Serializable]
@@ -122,16 +107,7 @@ public class ServerSync : MonoBehaviour
             yield return uwr.SendWebRequest();
 
             if (uwr.result == UnityWebRequest.Result.ConnectionError) Debug.Log("Error While Sending: " + uwr.error);
-            else
-            {
-                response = JsonUtility.FromJson<ResponseClass>(uwr.downloadHandler.text);
-
-                if (response != null && response.status == 0)
-                {
-                    Debug.Log("current status: " + response.status);
-                }
-                else Debug.Log("error post registerNewPlayer " + response.info);
-            }
+            else response = JsonUtility.FromJson<ResponseClass>(uwr.downloadHandler.text);
         }
 
         [System.Serializable]
@@ -206,7 +182,7 @@ public class ServerSync : MonoBehaviour
         public Status_check response = null;
         public IEnumerator RegisterNewPlayerCoroutine(string name, string actor_num)
         {
-            var uwr = new UnityWebRequest("https://dumka.pythonanywhere.com/register_new_player", "POST");
+            var uwr = new UnityWebRequest("https://dumka.pythonanywhere.com/register_new_user", "POST");
 
             var data = new SendClass { name = name, actor_num = actor_num };
             var json_data = JsonUtility.ToJson(data);
@@ -219,12 +195,7 @@ public class ServerSync : MonoBehaviour
             yield return uwr.SendWebRequest();
 
             if (uwr.result == UnityWebRequest.Result.ConnectionError) Debug.Log("Error While Sending: " + uwr.error);
-            else
-            {
-                response = JsonUtility.FromJson<Status_check>(uwr.downloadHandler.text);
-                if (response != null && response.status == 0) Debug.Log("succesfull post registerNewPlayer");
-                else Debug.Log("error post registerNewPlayer");
-            }
+            else response = JsonUtility.FromJson<Status_check>(uwr.downloadHandler.text);
         }
         public class SendClass
         {
@@ -252,15 +223,7 @@ public class ServerSync : MonoBehaviour
             yield return uwr.SendWebRequest();
 
             if (uwr.result == UnityWebRequest.Result.ConnectionError) Debug.Log("Error While Sending: " + uwr.error);
-            else
-            {
-                var status_check = JsonUtility.FromJson<Status_check>(uwr.downloadHandler.text);
-                if (status_check != null && status_check.status == 0)
-                {
-                    Debug.Log("succesfull post");
-                }
-                else Debug.Log("error post - " + status_check.info);
-            }
+            else response = JsonUtility.FromJson<Status_check>(uwr.downloadHandler.text);
         }
 
         [System.Serializable]

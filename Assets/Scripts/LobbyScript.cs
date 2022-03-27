@@ -224,6 +224,7 @@ public class LobbyScript : MonoBehaviourPunCallbacks
         PhotonNetwork.NickName = S.save.Nickname;
         Debug.Log(S.save.Nickname);
         Debug.Log(S.save.ID);
+        MMC.rigistrMenu.SetActive(false);
         StartCoroutine(MMC.registerNewPlayer(S.save.Nickname, S.save.ID));
 
     }

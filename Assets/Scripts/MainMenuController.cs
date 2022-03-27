@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,12 +10,15 @@ public class MainMenuController : MonoBehaviour
 
     [SerializeField] private GameObject settingsMenu;
     [SerializeField] private GameObject topListMenu;
+    [SerializeField] private GameObject joinClanMenu;
     [SerializeField] private GameObject createClanMenu;
     [SerializeField] private GameObject claneMenu;
-    [SerializeField] private GameObject rigistrMenu;
+    [SerializeField] public GameObject rigistrMenu;
 
     [SerializeField] private InputField clanNameInput;
     [SerializeField] private InputField clanDiscriptionInput;
+
+    [SerializeField] private InputField clanIdInput;
 
     [SerializeField] private ServerSync serverSync;
 
@@ -35,7 +39,7 @@ public class MainMenuController : MonoBehaviour
     private void Start()
     {
         //profileAnim.Play("right");
-        if (DC.save.youSaveNameCheck == 1)
+        if (DC.save.youSaveNameCheck == 0)
         {
             rigistrMenu.SetActive(true);
         }
@@ -47,7 +51,7 @@ public class MainMenuController : MonoBehaviour
         // actor_num = айди пользователя
         var request = new ServerSync.JoinClan();
         yield return StartCoroutine(request.JoinClanCoroutine(actor_num, clan_id));
-        if (request.statusCheck != null && request.statusCheck.status == 0) Debug.Log("good");
+        if (request.response != null && request.response.status == 0) Debug.Log("good");
         else Debug.Log("error");
     }
     public IEnumerator createClan(string actor_num, string name, string description)
@@ -60,7 +64,7 @@ public class MainMenuController : MonoBehaviour
             DC.save.yourClaneID = request.response.clan_id;
             DC.saveChanges();
         }
-        else Debug.Log("error");
+        else Debug.Log("error " + request.response.info);
     }
     public IEnumerator getClan(int clan_id)
     {
@@ -111,14 +115,14 @@ public class MainMenuController : MonoBehaviour
                 //player.score
             }
         }
-        else Debug.Log("error");
+        else Debug.Log("error " + request.response.info);
     }
     public IEnumerator registerNewPlayer(string name, string actor_num)
     {
         var request = new ServerSync.RegisterNewPlayer();
         yield return StartCoroutine(request.RegisterNewPlayerCoroutine(name, actor_num));
-        if (request.response.status == 0) Debug.Log("good"); // good
-        else Debug.Log("error");
+        if (request.response.status == 0) Debug.Log("good reg"); // good
+        else Debug.Log("error reg" + request.response.info);
     }
     public IEnumerator changeScore(List<ServerSync.ChangeScore.Players> players)
     {
@@ -142,6 +146,11 @@ public class MainMenuController : MonoBehaviour
             profileAnim.Play("right");
         }
     }
+    public void OpenOrCloseJoinClan(int num)
+    {
+        if (num == 1) joinClanMenu.SetActive(true);
+        else if (num == 0) joinClanMenu.SetActive(false);
+    }
 
     public void OpenOrCloseTopList(int num)
     {
@@ -160,12 +169,22 @@ public class MainMenuController : MonoBehaviour
         if (num == 1) createClanMenu.SetActive(true);
         else if (num == 0) createClanMenu.SetActive(false);
     }
+    public void JoinClanButton()
+    {
+        if (clanIdInput.text != "")
+        {
+            StartCoroutine(joinClan(S.save.ID, Int32.Parse(clanIdInput.text)));
+            joinClanMenu.SetActive(false);
+        }
+        DC.save.yourClaneID = Int32.Parse(clanIdInput.text);
+        DC.saveChanges();
+    }
 
     public void CreateClaneButton()
     {
         if (clanNameInput.text != "" && clanDiscriptionInput.text != "")
         {
-            StartCoroutine(createClan(S.save.Nickname, clanNameInput.text, clanDiscriptionInput.text));
+            StartCoroutine(createClan(S.save.ID, clanNameInput.text, clanDiscriptionInput.text));
         }
     }
 
@@ -179,7 +198,7 @@ public class MainMenuController : MonoBehaviour
         }
         else if (num == 0) 
         {
-            settingsMenu.SetActive(false);
+            claneMenu.SetActive(false);
         }
     }
 
