@@ -8,6 +8,14 @@ public class MainMenuController : MonoBehaviour
 {
     [SerializeField] private Animator profileAnim;
 
+    [SerializeField] private Text yourNameText;
+    [SerializeField] private Text yourRankText;
+    [SerializeField] private Text[] yourMMRText;
+    [SerializeField] private Text[] allGamesPlayedText;
+    [SerializeField] private Text wonGamesText;
+    [SerializeField] private Text gamesWithFirstPlaceText;
+    [SerializeField] private Text placeInWorldRaitingText;
+
     [SerializeField] private GameObject settingsMenu;
     [SerializeField] private GameObject topListMenu;
     [SerializeField] private GameObject joinClanMenu;
@@ -43,7 +51,8 @@ public class MainMenuController : MonoBehaviour
         {
             rigistrMenu.SetActive(true);
         }
-        StartCoroutine(getRating()); 
+        StartCoroutine(getRating());
+        Debug.Log(S.save.Nickname);
     }
 
     public IEnumerator joinClan(string actor_num, int clan_id)
@@ -74,7 +83,7 @@ public class MainMenuController : MonoBehaviour
         {
             Debug.Log("good " + request.response.clan_name); // request.response - данные клана
 
-            ClanMenuScr.clanNameText.text = request.response.clan_name;
+            ClanMenuScr.clanNameText.text = request.response.clan_name + " | " + clan_id;
             ClanMenuScr.clanDiscriptionText.text = request.response.description;
             //request.response.clan_name
             //request.response.description
@@ -86,7 +95,7 @@ public class MainMenuController : MonoBehaviour
             foreach (var player in request.response.members)
             {
                 ClanMenuScr.allNames.Add(player.name);
-                ClanMenuScr.allNames.Add("" + player.score);
+                ClanMenuScr.allScore.Add("" + player.score);
                 //player.name
                 //player.actor_num
                 //player.score
@@ -104,10 +113,19 @@ public class MainMenuController : MonoBehaviour
         {
             Debug.Log("good"); // request.response - топ челов
             listTopPlayersScr.panCount1 = request.response.players.Count;
+
+            int count = 0;
+
             foreach (var player in request.response.players)
             {
                 listTopPlayersScr.allNames.Add(player.name);
                 listTopPlayersScr.allScore.Add("" + player.score);
+                count++;
+                Debug.Log(player.name);
+                if (S.save.Nickname == player.name)
+                {
+                    DataRaitingReWrite(player.score, count);
+                }
                 // ѕеременные дл€ игрокорвов
                 //player.actor_num
                 //player.name
@@ -199,6 +217,7 @@ public class MainMenuController : MonoBehaviour
         else if (num == 0) 
         {
             claneMenu.SetActive(false);
+            ClanMenuScr.ClearMembersPanel();
         }
     }
 
@@ -207,5 +226,31 @@ public class MainMenuController : MonoBehaviour
         settingsMenu.SetActive(true);
         yield return null;
         settingsMenu.SetActive(false);
+    }
+
+    private void DataRaitingReWrite(int yourMMR, int placeInWorldRaiting)
+    {
+        DC.save.yourMMR = yourMMR;
+        if (DC.save.yourMMR >= Int32.Parse(LanguageSystem.lng.ranksHowManyPoints[DC.save.yourRank]))
+        {
+            DC.save.yourRank++;
+        }
+        //DC.save.allGamesPlayed;
+        //DC.save.wonGames;
+        //DC.save.gamesWithFirstPlace;
+        DC.save.placeInWorldRaiting = placeInWorldRaiting;
+
+        DataProfileReWrite();
+    }
+
+    private void DataProfileReWrite()
+    {
+        yourNameText.text = S.save.Nickname;
+        yourRankText.text = LanguageSystem.lng.ranks[DC.save.yourRank];
+        for (int i = 0; i < yourMMRText.Length; i++) yourMMRText[i].text = "" + DC.save.yourMMR;
+        for (int i = 0; i < allGamesPlayedText.Length; i++) allGamesPlayedText[i].text = "" + DC.save.allGamesPlayed;
+        wonGamesText.text = "" + DC.save.wonGames;
+        gamesWithFirstPlaceText.text = "" + DC.save.gamesWithFirstPlace;
+        placeInWorldRaitingText.text = "" + DC.save.placeInWorldRaiting;
     }
 }

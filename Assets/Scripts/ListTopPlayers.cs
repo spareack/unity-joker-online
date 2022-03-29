@@ -57,10 +57,11 @@ public class ListTopPlayers : MonoBehaviour
 
             Text[] txt = instPans1[i].GetComponentsInChildren<Text>();
             int num = i;
-
-            txt[0].text = allNames[i];
+            int place = i + 1;
+            txt[0].text = "" + place;
+            txt[1].text = allNames[i];
             //txt[1].text = LanguageSystem.lng.tablesVariantText[i];
-            txt[1].text = allScore[i];
+            txt[2].text = allScore[i];
 
             if (i == 0) continue;
             instPans1[i].transform.localPosition = new Vector2(instPans1[i].transform.localPosition.x,
@@ -76,7 +77,7 @@ public class ListTopPlayers : MonoBehaviour
             scrollRectType1.inertia = false;
         }
         float nearestPos = float.MaxValue;
-        for (int i = 1; i < panCount1 - 2; i++)
+        for (int i = 1; i < panCount1-2; i++)
         {
             float distance = Mathf.Abs(contentRect1.anchoredPosition.y - pansPos1[i].y);
             if (distance < nearestPos)

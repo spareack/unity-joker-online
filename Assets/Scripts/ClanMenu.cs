@@ -36,7 +36,7 @@ public class ClanMenu : MonoBehaviour
     public List<string> allScore = new List<string>();
 
     private int whichScroll = 2;
-
+    private bool isSpawned = false;
 
     [SerializeField] private DataCheck DC;
 
@@ -68,34 +68,46 @@ public class ClanMenu : MonoBehaviour
                 instPans1[i - 1].transform.localPosition.y - panPrefab1.GetComponent<RectTransform>().sizeDelta.y - panOffset);
             pansPos1[i] = -instPans1[i].transform.localPosition;
         }
+        isSpawned = true;
     }
 
     private void FixedUpdate()
     {
-        if (contentRect1.anchoredPosition.y <= pansPos1[0].y && !isScrolling1 || contentRect1.anchoredPosition.y >= pansPos1[pansPos1.Length - 1].y && !isScrolling1)
+        if (isSpawned)
         {
-            scrollRectType1.inertia = false;
-        }
-        float nearestPos = float.MaxValue;
-        for (int i = 1; i < panCount1 - 2; i++)
-        {
-            float distance = Mathf.Abs(contentRect1.anchoredPosition.y - pansPos1[i].y);
-            if (distance < nearestPos)
+            if (contentRect1.anchoredPosition.y <= pansPos1[0].y && !isScrolling1 || contentRect1.anchoredPosition.y >= pansPos1[pansPos1.Length - 1].y && !isScrolling1)
             {
-                nearestPos = distance;
-                selectedPanID1 = i;
+                scrollRectType1.inertia = false;
             }
+            float nearestPos = float.MaxValue;
+            for (int i = 1; i < panCount1 - 2; i++)
+            {
+                float distance = Mathf.Abs(contentRect1.anchoredPosition.y - pansPos1[i].y);
+                if (distance < nearestPos)
+                {
+                    nearestPos = distance;
+                    selectedPanID1 = i;
+                }
+            }
+            float scrollVelocity = Mathf.Abs(scrollRectType1.velocity.y);
+            if (scrollVelocity < 700 && !isScrolling1) scrollRectType1.inertia = false;
+            if (isScrolling1 || scrollVelocity > 700) return;
+            contentVector1.y = Mathf.SmoothStep(contentRect1.anchoredPosition.y, pansPos1[selectedPanID1].y, snapSpeed * Time.fixedDeltaTime);
+            contentRect1.anchoredPosition = contentVector1;
         }
-        float scrollVelocity = Mathf.Abs(scrollRectType1.velocity.y);
-        if (scrollVelocity < 700 && !isScrolling1) scrollRectType1.inertia = false;
-        if (isScrolling1 || scrollVelocity > 700) return;
-        contentVector1.y = Mathf.SmoothStep(contentRect1.anchoredPosition.y, pansPos1[selectedPanID1].y, snapSpeed * Time.fixedDeltaTime);
-        contentRect1.anchoredPosition = contentVector1;
-
     }
     public void Scrolling(bool scroll)
     {
         isScrolling1 = scroll;
         if (scroll) scrollRectType1.inertia = true;
+    }
+
+    public void ClearMembersPanel()
+    {
+        isSpawned = false;
+        for (int i = 0; i < instPans1.Length; i++)
+        {
+            Destroy(instPans1[i]);
+        }
     }
 }

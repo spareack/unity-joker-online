@@ -124,4 +124,9 @@ public class DataSave
     public int[] settings = new int[15];
 
     public int yourRank;
+    public int yourMMR;
+    public int allGamesPlayed;
+    public int wonGames;
+    public int gamesWithFirstPlace;
+    public int placeInWorldRaiting;
 }
